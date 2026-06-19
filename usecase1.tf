@@ -22,34 +22,29 @@ resource "vault_mount" "database" {
     ]
 }
 
+resource "vault_database_secret_backend_connection" "pagila_fresh" {
+  namespace = local.uc1_vault_namespace
 
-resource "vault_database_secret_backend_connection" "pagila" {
-    namespace = local.uc1_vault_namespace
+  backend = vault_mount.database.path
+  name    = "pagila-fresh"
 
-    backend = vault_mount.database.path
-    name    = local.uc1_postgres_database_name
+  allowed_roles = ["readonly-fresh"]
 
-    allowed_roles = [
-        "readonly"
-    ]
+  postgresql {
+    connection_url = "postgresql://{{username}}:{{password}}@192.168.2.128:30432/pagila?sslmode=disable"
 
-    postgresql {
-        connection_url = "postgresql://${local.uc1_postgres_admin_user}:${var.uc1_postgres_admin_password}@${local.uc1_postgres_host}:${local.uc1_postgres_port}/${local.uc1_postgres_database_name}?sslmode=disable"
-    }
-
-    depends_on = [
-        vault_mount.database
-    ]
+    username = local.uc1_postgres_admin_user
+    password = var.uc1_postgres_admin_password
+  }
 }
 
-
-resource "vault_database_secret_backend_role" "readonly" {
+resource "vault_database_secret_backend_role" "readonly_fresh" {
     
     namespace = local.uc1_vault_namespace
 
     backend = vault_mount.database.path
-    name    = "readonly"
-    db_name = vault_database_secret_backend_connection.pagila.name
+    name    = "readonly-fresh"
+    db_name = vault_database_secret_backend_connection.pagila_fresh.name
 
     creation_statements = [
         <<-SQL
