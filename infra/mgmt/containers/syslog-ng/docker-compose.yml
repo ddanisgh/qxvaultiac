@@ -1,0 +1,11 @@
+services:
+  syslog-server:
+    image: balabit/syslog-ng:latest
+    container_name: management-syslog-ng
+    restart: unless-stopped
+    ports:
+      - "514:514/udp"
+      - "514:514/tcp"
+    volumes:
+      - ./config/syslog-ng.conf:/etc/syslog-ng/syslog-ng.conf:ro
+      - ./logs:/var/log/qxvault
