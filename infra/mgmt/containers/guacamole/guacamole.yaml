@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # 1. The PostgreSQL Database
+  guac-db:
+    image: postgres:latest
+    container_name: guac-db
+    restart: always
+    environment:
+      POSTGRES_DB: guacamole_db
+      POSTGRES_USER: guacamole_user
+      POSTGRES_PASSWORD: Password123
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # AUTOMATION TRICK: Mounts your SQL schema directly into the initialization folder
+      - /tmp/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql:ro
+    networks:
+      - mgmt
+
+  # 2. The Guacamole Daemon (guacd)
+  guac-server:
+    image: guacamole/guacd:latest
+    container_name: guac-server
+    restart: always
+    networks:
+      - mgmt
+
+  # 3. The Guacamole Web Client (Frontend)
+  guac-client:
+    image: guacamole/guacamole:latest
+    container_name: guac-client
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - GUACD_HOSTNAME=guac-server
+      - POSTGRESQL_HOSTNAME=guac-db
+      - POSTGRESQL_DATABASE=guacamole_db
+      - POSTGRESQL_USER=guacamole_user
+      - POSTGRESQL_PASSWORD=Password123
+    depends_on:
+      - guac-db
+      - guac-server
+    networks:
+      - mgmt
+
+volumes:
+  pgdata:
+    external: true  # Instructs Compose to reuse your existing data volume
+
+networks:
+  mgmt:
+    external: true  # Reuses your existing management network
