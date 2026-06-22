@@ -1,0 +1,25 @@
+services:
+  qx-vault-dedicated:
+    image: qxvault-emulator:${EMULATOR_TAG}
+    container_name: qx-vault-dedicated
+    privileged: true
+    environment:
+      - SERIAL_NUMBER=QXV0000001
+    ports:
+      - "8200:8200" # Vault API
+      - "8201:8201" # Vault cluster service port
+      - "8222:8222" # Operator shell
+      - "8202:8202" # QxVault clusterjoin port
+      - "8300:8300" # Extra Vault API listener
+      - "8135:8135" # QxRealm
+      - "8142:8142" # QxConsole
+      - "8127:8127" # QxSSO
+    volumes:
+      - dedicatedVaultHsmData:/opt/qx-emulator/hsmEmulator
+      - dedicatedVaultSbcData:/opt/qx-emulator/north1
+      - dedicatedVaultDockerData:/var/lib/docker
+
+volumes:
+  dedicatedVaultHsmData:
+  dedicatedVaultSbcData:
+  dedicatedVaultDockerData:
