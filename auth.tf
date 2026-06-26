@@ -9,8 +9,8 @@ resource "vault_generic_endpoint" "oidc_config" {
 
   data_json = jsonencode({
     "oidc_discovery_url" = "http://192.168.0.161:7080/realms/smaaspoc"
-    "oidc_client_id"     = "qxvault-client"
-    "oidc_client_secret" = "arRNEuXTnHwmpsYgORC0cLZb0kMUhTlg"
+    "oidc_client_id"     = var.keycloak_client_id
+    "oidc_client_secret" = var.keycloak_secret
     "namespace_in_state" = "true"
     "default_role"       = "admin-sso"
   })
