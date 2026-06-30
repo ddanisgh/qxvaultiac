@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: injector-test
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "demo"
+    vault.hashicorp.com/agent-inject-secret-creds.txt: "secret/data/demo"
+    vault.hashicorp.com/namespace: "diamonds"
+    vault.hashicorp.com/tls-skip-verify: "true"
+spec:
+  serviceAccountName: sa-demo
+
+  containers:
+  - name: app
+    image: busybox
+    command:
+    - sh
+    - -c
+    - |
+      sleep 3600
