@@ -1,0 +1,32 @@
+# certificate.yaml
+# Request a certificate from Vault via cert-manager
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-tls
+  namespace: default
+spec:
+  # Name of the Secret to store the certificate
+  secretName: api-tls-secret
+
+  # Certificate details
+  commonName: api.internal.example.com
+  dnsNames:
+    - api.internal.example.com
+    - api.svc.cluster.local
+
+  # Use short-lived certificates (1 hour)
+  duration: 1h
+
+  # Renew 10 minutes before expiration
+  renewBefore: 10m
+
+  # Reference the Vault issuer
+  issuerRef:
+    name: vault-issuer
+    kind: ClusterIssuer
+
+  # Private key settings
+  privateKey:
+    algorithm: ECDSA
+    size: 256
