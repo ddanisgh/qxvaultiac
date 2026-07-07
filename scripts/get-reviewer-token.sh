@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
-TOKEN=$(kubectl create token openbao-reviewer -n default)
+set -euo pipefail
+
+SERVICE_ACCOUNT="$1"
+NAMESPACE="$2"
+
+TOKEN=$(kubectl create token \
+  "$SERVICE_ACCOUNT" \
+  -n "$NAMESPACE")
 
 jq -n \
   --arg token "$TOKEN" \
