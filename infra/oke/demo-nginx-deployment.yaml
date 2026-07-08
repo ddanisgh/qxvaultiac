@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-web
+  namespace: default
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: demo-web
+
+  template:
+    metadata:
+      labels:
+        app: demo-web
+
+    spec:
+      containers:
+      - name: nginx
+        image: docker.io/library/nginx:1.29
+
+        ports:
+        - containerPort: 443
+
+        volumeMounts:
+        - name: tls
+          mountPath: /etc/nginx/tls
+          readOnly: true
+
+        - name: nginx-conf
+          mountPath: /etc/nginx/conf.d
+          readOnly: true
+
+      volumes:
+      - name: tls
+        secret:
+          secretName: demo-web-tls
+
+      - name: nginx-conf
+        configMap:
+          name: demo-web-nginx
