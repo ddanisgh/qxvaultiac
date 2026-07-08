@@ -1,6 +1,6 @@
 locals {
     uc5_vault_namespace         = "hearts"
-    uc5_k8s_api_server          = "192.168.2.128"
+    uc5_k8s_api_server          = "https://192.168.0.56:6443"
     uc5_vault_host		= "https://vault.example.com:8200"
     uc5_pki_int_url 		= "${local.uc5_vault_host}/v1/${local.uc5_vault_namespace}/${vault_mount.pki_int.path}"
 }
@@ -23,7 +23,7 @@ resource "vault_mount" "pki_root" {
 }
 
 resource "vault_mount" "pki_int" {
-  namespace = "local_uc5_vault_namespace"
+  namespace = local.uc5_vault_namespace
 
   path = "pki_int"
   type = "pki"
@@ -71,7 +71,7 @@ resource "vault_pki_secret_backend_intermediate_set_signed" "intermediate" {
 resource "vault_pki_secret_backend_config_urls" "pki_int" {
   namespace = local.uc5_vault_namespace
 
-  backend = uc5_vault_mount.pki_int.path
+  backend = vault_mount.pki_int.path
 
   issuing_certificates = [
     "${local.uc5_pki_int_url}/ca"
@@ -161,22 +161,46 @@ resource "vault_policy" "cert_manager" {
   policy = file("policies/pcy-ns-hearts-cert-manager.hcl")
 }
 
-resource "vault_auth_backend" "kubernetes" {
+resource "vault_auth_backend" "uc5_kubernetes" {
   namespace = local.uc5_vault_namespace
 
   type = "kubernetes"
   path = "kubernetes"
 }
 
-resource "vault_kubernetes_auth_backend_config" "kubernetes" {
+resource "vault_kubernetes_auth_backend_config" "uc5_kubernetes" {
   namespace = local.uc5_vault_namespace
 
-  backend = vault_auth_backend.kubernetes.path
+  backend = vault_auth_backend.uc5_kubernetes.path
 
-  kubernetes_host    = local.uc5_kubernetes_host
+  kubernetes_host    = local.uc5_k8s_api_server
   kubernetes_ca_cert = file("${path.module}/infra/oke/ca.crt")
 
   token_reviewer_jwt = data.external.uc5_reviewer_token.result.token_reviewer_jwt
 
   disable_iss_validation = true
+}
+
+resource "vault_kubernetes_auth_backend_role" "uc5_cert_manager" {
+  namespace = local.uc5_vault_namespace
+
+  backend = vault_auth_backend.uc5_kubernetes.path
+
+  role_name = "cert-manager"
+
+  bound_service_account_names = [
+    "vault-issuer"
+  ]
+
+  bound_service_account_namespaces = [
+    "cert-manager"
+  ]
+
+  audience = "vault://vault-issuer"
+
+  token_policies = [
+    vault_policy.cert_manager.name
+  ]
+
+  token_ttl = 3600
 }
