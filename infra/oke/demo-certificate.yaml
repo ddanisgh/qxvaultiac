@@ -1,0 +1,20 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: demo-web-cert
+  namespace: default
+spec:
+  secretName: demo-web-tls
+
+  commonName: demo.internal.example.com
+
+  dnsNames:
+    - demo.internal.example.com
+
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+
+  issuerRef:
+    kind: ClusterIssuer
+    name: vault-issuer
