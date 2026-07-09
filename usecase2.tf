@@ -8,15 +8,6 @@ variable "kubernetes_ca_cert_file" {
   type        = string
 }
 
-data "external" "uc2_reviewer_token" {
-  program = [
-    "bash",
-    "${path.module}/scripts/get-reviewer-token.sh",
-    "openbao-reviewer",
-    "default"
-  ]
-}
-
 resource "vault_mount" "secret" {
   namespace = vault_namespace.diamonds.path
 
@@ -51,7 +42,6 @@ resource "vault_kubernetes_auth_backend_config" "this" {
   kubernetes_host    = var.kubernetes_host
   kubernetes_ca_cert = file("${path.root}/${var.kubernetes_ca_cert_file}")
 
-  token_reviewer_jwt     = data.external.uc2_reviewer_token.result.token_reviewer_jwt
   disable_iss_validation = true
 }
 
