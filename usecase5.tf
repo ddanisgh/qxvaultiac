@@ -5,16 +5,6 @@ locals {
     uc5_pki_int_url 		= "${local.uc5_vault_host}/v1/${local.uc5_vault_namespace}/${vault_mount.pki_int.path}"
 }
 
-
-data "external" "uc5_reviewer_token" {
-  program = [
-    "bash",
-    "${path.module}/scripts/get-reviewer-token.sh",
-    "vault-reviewer",
-    "cert-manager"
-  ]
-}
-
 resource "vault_mount" "pki_root" {
   namespace                 = local.uc5_vault_namespace
   path                      = "pki_root"
@@ -175,8 +165,6 @@ resource "vault_kubernetes_auth_backend_config" "uc5_kubernetes" {
 
   kubernetes_host    = local.uc5_k8s_api_server
   kubernetes_ca_cert = file("${path.module}/infra/oke/ca.crt")
-
-  token_reviewer_jwt = data.external.uc5_reviewer_token.result.token_reviewer_jwt
 
   disable_iss_validation = true
 }
